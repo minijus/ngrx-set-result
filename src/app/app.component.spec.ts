@@ -1,12 +1,18 @@
-import { TestBed, async } from '@angular/core/testing';
+import { async, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
+
 import { AppComponent } from './app.component';
+import { AppService } from './service/app.service';
 
 describe('AppComponent', () => {
+  const appService = {
+    isReady: () => Promise.resolve()
+  };
+
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [
-        AppComponent
-      ],
+      declarations: [AppComponent],
+      providers: [provideMockStore(), { provide: AppService, useValue: appService }]
     }).compileComponents();
   }));
 
@@ -16,16 +22,21 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'ngrx-set-result'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('ngrx-set-result');
-  });
-
-  it('should render title in a h1 tag', () => {
+  it(`should have not ready message after init`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('h1').textContent).toContain('Welcome to ngrx-set-result!');
+    const body = fixture.debugElement.nativeElement;
+    expect(body.textContent).toContain('App not yet ready');
   });
+
+  it(`should have ready message after 5 seconds`, fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    tick(5001);
+    fixture.detectChanges();
+
+    const body = fixture.debugElement.nativeElement;
+    expect(body.textContent).toContain('App became ready');
+  }));
 });
